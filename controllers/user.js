@@ -4,27 +4,6 @@ const nodemailer = require('nodemailer');
 const passport = require('passport');
 const User = require('../models/User');
 
-var createRandomToken=function createRandomToken(done) {
-      crypto.randomBytes(16, (err, buf) => {
-        const token = buf.toString('hex');
-        done(err, token);
-      });
-    };
-
-var setRandomToken=function setRandomToken(token, done) {
-      User.findOne({ email: req.body.email }, (err, user) => {
-        if (err) { return done(err); }
-        if (!user) {
-          req.flash('errors', { msg: 'Account with that email address does not exist.' });
-          return res.redirect('/forgot');
-        }
-        user.passwordResetToken = token;
-        user.passwordResetExpires = Date.now() + 3600000; // 1 hour
-        user.save((err) => {
-          done(err, token, user);
-        });
-      });
-    };
 
 /**
  * GET /login
@@ -365,8 +344,28 @@ exports.postForgot = (req, res, next) => {
   }
 
   async.waterfall([
-    createRandomToken(done),
-    setRandomToken(token,done),
+    function createRandomToken(done) {
+      crypto.randomBytes(16, (err, buf) => {
+        const token = buf.toString('hex');
+        done(err, token);
+      });
+    },
+
+   function setRandomToken(token, done) {
+      User.findOne({ email: req.body.email }, (err, user) => {
+        if (err) { return done(err); }
+        if (!user) {
+          req.flash('errors', { msg: 'Account with that email address does not exist.' });
+          return res.redirect('/forgot');
+        }
+        user.passwordResetToken = token;
+        user.passwordResetExpires = Date.now() + 3600000; // 1 hour
+        user.save((err) => {
+          done(err, token, user);
+        });
+      });
+    },
+
     function sendForgotPasswordEmail(token, user, done) { 
        
       const mailOptions = {
