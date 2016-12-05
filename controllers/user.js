@@ -99,16 +99,21 @@ exports.postSignup = (req, res, next) => {
       req.flash('errors', { msg: 'Account with that email address already exists.' });
       return res.redirect('/signup');
     }
-    user.activationToken='xyzabcdefghija';
+    crypto.randomBytes(32, function(err, buffer) {
+      user.activationToken=buffer.toString('hex');
+    });
     user.activated = 'N';
     user.save((err) => {
       if (err) { return next(err); }
-      req.logIn(user, (err) => {
-        if (err) {
-          return next(err);
-        }
-        res.redirect('/');
-      });
+      req.flash('success', { msg: 'Success! Profile Saved - Please activate your account from the email link !' });
+      res.redirect('/');
+      // Do not login yet
+      //  req.logIn(user, (err) => {
+     //   if (err) {
+      //    return next(err);
+     //   }
+     //   res.redirect('/');
+    //  });
     });
   });
 };
