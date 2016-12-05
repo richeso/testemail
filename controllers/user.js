@@ -4,10 +4,33 @@ const nodemailer = require('nodemailer');
 const passport = require('passport');
 const User = require('../models/User');
 
+var createRandomToken=function createRandomToken(done) {
+      crypto.randomBytes(16, (err, buf) => {
+        const token = buf.toString('hex');
+        done(err, token);
+      });
+    };
+
+var setRandomToken=function setRandomToken(token, done) {
+      User.findOne({ email: req.body.email }, (err, user) => {
+        if (err) { return done(err); }
+        if (!user) {
+          req.flash('errors', { msg: 'Account with that email address does not exist.' });
+          return res.redirect('/forgot');
+        }
+        user.passwordResetToken = token;
+        user.passwordResetExpires = Date.now() + 3600000; // 1 hour
+        user.save((err) => {
+          done(err, token, user);
+        });
+      });
+    };
+
 /**
  * GET /login
  * Login page.
  */
+
 exports.getLogin = (req, res) => {
   if (req.user) {
     return res.redirect('/');
@@ -97,6 +120,8 @@ exports.postSignup = (req, res, next) => {
       req.flash('errors', { msg: 'Account with that email address already exists.' });
       return res.redirect('/signup');
     }
+    user.activationToken='xyzabcdefghija';
+    user.activated = 'N';
     user.save((err) => {
       if (err) { return next(err); }
       req.logIn(user, (err) => {
@@ -264,6 +289,8 @@ exports.postReset = (req, res, next) => {
           user.password = req.body.password;
           user.passwordResetToken = undefined;
           user.passwordResetExpires = undefined;
+          user.activationToken = undefined;
+          user.activated = 'Y';
           user.save((err) => {
             if (err) { return next(err); }
             req.logIn(user, (err) => {
@@ -298,6 +325,7 @@ exports.postReset = (req, res, next) => {
   	  console.log(response.statusCode);
   	  console.log(response.body);
   	  console.log(response.headers);
+  	  req.flash('success', { msg: 'Success! Password Reset Completed !' });
   	  res.redirect('/');
   	});
     }
@@ -324,6 +352,7 @@ exports.getForgot = (req, res) => {
  * POST /forgot
  * Create a random token, then the send user an email with a reset link.
  */
+
 exports.postForgot = (req, res, next) => {
   req.assert('email', 'Please enter a valid email address.').isEmail();
   req.sanitize('email').normalizeEmail({ remove_dots: false });
@@ -336,26 +365,8 @@ exports.postForgot = (req, res, next) => {
   }
 
   async.waterfall([
-    function createRandomToken(done) {
-      crypto.randomBytes(16, (err, buf) => {
-        const token = buf.toString('hex');
-        done(err, token);
-      });
-    },
-    function setRandomToken(token, done) {
-      User.findOne({ email: req.body.email }, (err, user) => {
-        if (err) { return done(err); }
-        if (!user) {
-          req.flash('errors', { msg: 'Account with that email address does not exist.' });
-          return res.redirect('/forgot');
-        }
-        user.passwordResetToken = token;
-        user.passwordResetExpires = Date.now() + 3600000; // 1 hour
-        user.save((err) => {
-          done(err, token, user);
-        });
-      });
-    },
+    createRandomToken(done),
+    setRandomToken(token,done),
     function sendForgotPasswordEmail(token, user, done) { 
        
       const mailOptions = {
@@ -386,7 +397,8 @@ exports.postForgot = (req, res, next) => {
     	  console.log(response.statusCode);
     	  console.log(response.body);
     	  console.log(response.headers);
-    	  res.redirect('/');
+    	  req.flash('success', { msg: 'Success! Reset Password Reset Request Sent. Please Click on your email request link to Complete Password Reset.' });
+    	  res.redirect('/forgot');
     	});
     }
   ], (err) => {
