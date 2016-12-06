@@ -41,6 +41,7 @@ exports.postLogin = (req, res, next) => {
       req.flash('errors', info);
       return res.redirect('/login');
     }
+    console.log("Activation switch="+user.activation+ " Token="+user.activationToken);
     req.logIn(user, (err) => {
       if (err) { return next(err); }
       req.flash('success', { msg: 'Success! You are logged in.' });
@@ -99,23 +100,103 @@ exports.postSignup = (req, res, next) => {
       req.flash('errors', { msg: 'Account with that email address already exists.' });
       return res.redirect('/signup');
     }
-    crypto.randomBytes(32, function(err, buffer) {
-      user.activationToken=buffer.toString('hex');
-    });
-    user.activated = 'N';
-    user.save((err) => {
+   
+    async.waterfall([
+      function createRandomToken(done) {
+        crypto.randomBytes(16, (err, buf) => {
+          const token = buf.toString('hex');
+          done(err, token);
+        });
+      },
+
+     function setRandomToken(token, done) {
+    	 user.activationToken = token;
+    	 user.activated = 'N';
+         user.activationExpires = Date.now() + (24*60*60*1000); // 24 hours
+         done(err, token, user);
+      },
+      
+      function saveNewAccount(token, user, done) {
+    	  user.save((err) => {
+    	      if (err) { return next(err); }
+    	      // req.flash('success', { msg: 'Success! Profile Saved - Please activate your account from the email link !' });
+    	      // res.redirect('/');
+    	      // Do not login yet
+    	      //  req.logIn(user, (err) => {
+    	     //   if (err) {
+    	      //    return next(err);
+    	     //   }
+    	     //   res.redirect('/');
+    	    //  });
+    	    });
+
+ 	     done(err, token, user);
+    	  
+      },
+       
+      function sendActivaionEmail(token, user, done) { 
+         
+        const mailOptions = {
+          to: user.email,
+          from: 'hackathon@starter.com',
+          subject: 'Activate your account on Hackathon Starter',
+          text: `You are receiving this email because you have registered for a new account.\n\n
+            Please click on the following link, or paste this into your browser to complete the account activation process:\n\n
+            http://${req.headers.host}/activate/${token}\n\n
+            If you did not request this, please ignore this email and your account will not be activated.\n`
+        };
+       
+      	var helper = require('sendgrid').mail;
+      	var from_email = new helper.Email(mailOptions.from);
+      	var to_email = new helper.Email(mailOptions.to);
+      	
+      	var content = new helper.Content('text/plain', mailOptions.text);
+      	var mail = new helper.Mail(from_email, mailOptions.subject, to_email, content);
+
+      	var sg = require('sendgrid')(process.env.SENDGRID_PASSWORD);
+      	var request = sg.emptyRequest({
+      	  method: 'POST',
+      	  path: '/v3/mail/send',
+      	  body: mail.toJSON(),
+      	});
+
+      	sg.API(request, function(error, response) {
+      	  console.log(response.statusCode);
+      	  console.log(response.body);
+      	  console.log(response.headers);
+      	  req.flash('success', { msg: 'Success ! Please Check your email and click on the link to Activate your Account.' });
+      	  res.redirect('/forgot');
+      	});
+      }
+    ], (err) => {
       if (err) { return next(err); }
-      req.flash('success', { msg: 'Success! Profile Saved - Please activate your account from the email link !' });
-      res.redirect('/');
-      // Do not login yet
-      //  req.logIn(user, (err) => {
-     //   if (err) {
-      //    return next(err);
-     //   }
-     //   res.redirect('/');
-    //  });
+      res.redirect('/signup');
     });
+    
   });
+};
+
+/**
+ * GET /activate/:token
+ * Activate Account page.
+ */
+exports.getActivate = (req, res, next) => {
+  if (req.isAuthenticated()) {
+    return res.redirect('/');
+  }
+  User
+    .findOne({ activationToken: req.params.token })
+    .where('activationExpires').gt(Date.now())
+    .exec((err, user) => {
+      if (err) { return next(err); }
+      if (!user) {
+        req.flash('errors', { msg: 'Activation token is invalid or has expired.' });
+        return res.redirect('/forgot');
+      }
+      res.render('account/activate', {
+        title: 'Activate Account'
+      });
+    });
 };
 
 /**

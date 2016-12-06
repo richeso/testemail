@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
   passwordResetExpires: Date,
   activated: String,
   activationToken: String,
+  activationExpires: Date,
   facebook: String,
   twitter: String,
   google: String,
