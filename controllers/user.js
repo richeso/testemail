@@ -4,7 +4,39 @@ const nodemailer = require('nodemailer');
 const passport = require('passport');
 const User = require('../models/User');
 
+var emailActivationRequest = function(req,res,token,user) {
+  const mailOptions = {
+          to: user.email,
+          from: 'hackathon@starter.com',
+          subject: 'Activate your account on Hackathon Starter',
+          text: `You are receiving this email because you have registered for a new account.\n\n
+            Please click on the following link, or paste this into your browser to complete the account activation process:\n\n
+            http://${req.headers.host}/activate/${token}\n\n
+            If you did not request this, please ignore this email and your account will not be activated.\n`
+        };
+       
+        var helper = require('sendgrid').mail;
+        var from_email = new helper.Email(mailOptions.from);
+        var to_email = new helper.Email(mailOptions.to);
+        
+        var content = new helper.Content('text/plain', mailOptions.text);
+        var mail = new helper.Mail(from_email, mailOptions.subject, to_email, content);
 
+        var sg = require('sendgrid')(process.env.SENDGRID_PASSWORD);
+        var request = sg.emptyRequest({
+          method: 'POST',
+          path: '/v3/mail/send',
+          body: mail.toJSON(),
+        });
+
+        sg.API(request, function(error, response) {
+          console.log(response.statusCode);
+          console.log(response.body);
+          console.log(response.headers);
+          req.flash('success', { msg: 'Success ! Please Check your email and click on the link to Activate your Account.' });
+          res.redirect('/actmail');
+        });
+}
 /**
  * GET /login
  * Login page.
@@ -41,7 +73,11 @@ exports.postLogin = (req, res, next) => {
       req.flash('errors', info);
       return res.redirect('/login');
     }
-    console.log("Activation switch="+user.activation+ " Token="+user.activationToken);
+    console.log("Activation switch="+user.activated+ " Token="+user.activationToken);
+    if (user.activated != 'Y') {
+      req.flash('errors', { msg: 'Account not activated yet !. Please check your email to activate your account' });
+      return res.redirect('/login');
+    }
     req.logIn(user, (err) => {
       if (err) { return next(err); }
       req.flash('success', { msg: 'Success! You are logged in.' });
@@ -135,38 +171,7 @@ exports.postSignup = (req, res, next) => {
       },
        
       function sendActivaionEmail(token, user, done) { 
-         
-        const mailOptions = {
-          to: user.email,
-          from: 'hackathon@starter.com',
-          subject: 'Activate your account on Hackathon Starter',
-          text: `You are receiving this email because you have registered for a new account.\n\n
-            Please click on the following link, or paste this into your browser to complete the account activation process:\n\n
-            http://${req.headers.host}/activate/${token}\n\n
-            If you did not request this, please ignore this email and your account will not be activated.\n`
-        };
-       
-      	var helper = require('sendgrid').mail;
-      	var from_email = new helper.Email(mailOptions.from);
-      	var to_email = new helper.Email(mailOptions.to);
-      	
-      	var content = new helper.Content('text/plain', mailOptions.text);
-      	var mail = new helper.Mail(from_email, mailOptions.subject, to_email, content);
-
-      	var sg = require('sendgrid')(process.env.SENDGRID_PASSWORD);
-      	var request = sg.emptyRequest({
-      	  method: 'POST',
-      	  path: '/v3/mail/send',
-      	  body: mail.toJSON(),
-      	});
-
-      	sg.API(request, function(error, response) {
-      	  console.log(response.statusCode);
-      	  console.log(response.body);
-      	  console.log(response.headers);
-      	  req.flash('success', { msg: 'Success ! Please Check your email and click on the link to Activate your Account.' });
-      	  res.redirect('/forgot');
-      	});
+         emailActivationRequest(req,res,token,user);
       }
     ], (err) => {
       if (err) { return next(err); }
@@ -198,6 +203,8 @@ exports.getActivate = (req, res, next) => {
       });
     });
 };
+
+
 
 /**
  * GET /account
@@ -400,6 +407,7 @@ exports.postReset = (req, res, next) => {
   });
 };
 
+
 /**
  * GET /forgot
  * Forgot Password page.
@@ -464,30 +472,92 @@ exports.postForgot = (req, res, next) => {
           If you did not request this, please ignore this email and your password will remain unchanged.\n`
       };
      
-    	var helper = require('sendgrid').mail;
-    	var from_email = new helper.Email(mailOptions.from);
-    	var to_email = new helper.Email(mailOptions.to);
-    	
-    	var content = new helper.Content('text/plain', mailOptions.text);
-    	var mail = new helper.Mail(from_email, mailOptions.subject, to_email, content);
+      var helper = require('sendgrid').mail;
+      var from_email = new helper.Email(mailOptions.from);
+      var to_email = new helper.Email(mailOptions.to);
+      
+      var content = new helper.Content('text/plain', mailOptions.text);
+      var mail = new helper.Mail(from_email, mailOptions.subject, to_email, content);
 
-    	var sg = require('sendgrid')(process.env.SENDGRID_PASSWORD);
-    	var request = sg.emptyRequest({
-    	  method: 'POST',
-    	  path: '/v3/mail/send',
-    	  body: mail.toJSON(),
-    	});
+      var sg = require('sendgrid')(process.env.SENDGRID_PASSWORD);
+      var request = sg.emptyRequest({
+        method: 'POST',
+        path: '/v3/mail/send',
+        body: mail.toJSON(),
+      });
 
-    	sg.API(request, function(error, response) {
-    	  console.log(response.statusCode);
-    	  console.log(response.body);
-    	  console.log(response.headers);
-    	  req.flash('success', { msg: 'Success! Reset Password Reset Request Sent. Please Click on your email request link to Complete Password Reset.' });
-    	  res.redirect('/forgot');
-    	});
+      sg.API(request, function(error, response) {
+        console.log(response.statusCode);
+        console.log(response.body);
+        console.log(response.headers);
+        req.flash('success', { msg: 'Success! Reset Password Reset Request Sent. Please Click on your email request link to Complete Password Reset.' });
+        res.redirect('/forgot');
+      });
     }
   ], (err) => {
     if (err) { return next(err); }
     res.redirect('/forgot');
   });
+};
+
+
+/**
+ * GET /forgot
+ * Forgot Password page.
+ */
+exports.getActmail = (req, res) => {
+  if (req.isAuthenticated()) {
+    return res.redirect('/');
+  }
+  res.render('account/actmail', {
+    title: 'Re-send Activation Email'
+  });
+};
+
+/**
+ * POST /forgot
+ * Create a random token, then the send user an email with a reset link.
+ */
+
+exports.postActmail = (req, res, next) => {
+  req.assert('email', 'Please enter a valid email address.').isEmail();
+  req.sanitize('email').normalizeEmail({ remove_dots: false });
+
+  const errors = req.validationErrors();
+
+  if (errors) {
+    req.flash('errors', errors);
+    return res.redirect('/actmail');
+  }
+
+    async.waterfall([
+      function createRandomToken(done) {
+        crypto.randomBytes(16, (err, buf) => {
+          const token = buf.toString('hex');
+          done(err, token);
+        });
+      },
+      function setRandomToken(token, done) {
+          User.findOne({ email: req.body.email }, (err, user) => {
+            if (err) { return done(err); }
+            if (!user) {
+              req.flash('errors', { msg: 'Account with that email address does not exist.' });
+              return res.redirect('/actmail');
+            }
+            user.activationToken = token;
+            user.activated = 'N';
+            user.activationExpires = Date.now() + (24*60*60*1000); // 24 hours
+            user.save((err) => {
+              done(err, token, user);
+            });
+          });
+       },
+      function sendActivaionEmail(token, user, done) { 
+         emailActivationRequest(req,res,token,user);
+      }
+    ], (err) => {
+      if (err) { return next(err); }
+      res.redirect('/actmail');
+    });
+    
 };
