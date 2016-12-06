@@ -73,7 +73,7 @@ exports.postLogin = (req, res, next) => {
       req.flash('errors', info);
       return res.redirect('/login');
     }
-    console.log("Activation switch="+user.activated+ " Token="+user.activationToken);
+    //console.log("Activation switch="+user.activated+ " Token="+user.activationToken);
     if (user.activated != 'Y') {
       req.flash('errors', { msg: 'Account not activated yet !. Please check your email to activate your account' });
       return res.redirect('/login');
@@ -155,15 +155,6 @@ exports.postSignup = (req, res, next) => {
       function saveNewAccount(token, user, done) {
     	  user.save((err) => {
     	      if (err) { return next(err); }
-    	      // req.flash('success', { msg: 'Success! Profile Saved - Please activate your account from the email link !' });
-    	      // res.redirect('/');
-    	      // Do not login yet
-    	      //  req.logIn(user, (err) => {
-    	     //   if (err) {
-    	      //    return next(err);
-    	     //   }
-    	     //   res.redirect('/');
-    	    //  });
     	    });
 
  	     done(err, token, user);
@@ -196,11 +187,15 @@ exports.getActivate = (req, res, next) => {
       if (err) { return next(err); }
       if (!user) {
         req.flash('errors', { msg: 'Activation token is invalid or has expired.' });
-        return res.redirect('/forgot');
+        return res.redirect('/actmail');
       }
-      res.render('account/activate', {
-        title: 'Activate Account'
-      });
+      user.activationToken = undefined;
+      user.activated = 'Y';
+      user.save((err) => {
+            if (err) { return next(err); }
+            req.flash('success', { msg: 'Account was successfully Activated ! Please login to your account.' });
+            return res.redirect('/login');
+          });
     });
 };
 

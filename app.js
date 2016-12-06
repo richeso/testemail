@@ -124,7 +124,7 @@ app.post('/forgot', userController.postForgot);
 
 app.get('/actmail', userController.getActmail);
 app.post('/actmail', userController.postActmail);
-app.get('/activate', userController.getActivate);
+app.get('/activate/:token', userController.getActivate);
 
 app.get('/reset/:token', userController.getReset);
 app.post('/reset/:token', userController.postReset);
