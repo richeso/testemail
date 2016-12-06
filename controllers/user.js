@@ -190,6 +190,7 @@ exports.getActivate = (req, res, next) => {
         return res.redirect('/actmail');
       }
       user.activationToken = undefined;
+      user.activationExpires = undefined;
       user.activated = 'Y';
       user.save((err) => {
             if (err) { return next(err); }
@@ -538,6 +539,10 @@ exports.postActmail = (req, res, next) => {
             if (!user) {
               req.flash('errors', { msg: 'Account with that email address does not exist.' });
               return res.redirect('/actmail');
+            }
+            if (user.activated == 'Y') {
+              req.flash('errors', { msg: 'Account already activated !' });
+              return res.redirect('/login');
             }
             user.activationToken = token;
             user.activated = 'N';
