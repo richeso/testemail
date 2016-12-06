@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const roomSchema = new mongoose.Schema({
   roomname: { type: String, unique: true },
   secret: String,
-  roomExpires: Date
+  roomExpires: Date,
   players: Array,
 
   profile: {
@@ -18,8 +18,3 @@ const roomSchema = new mongoose.Schema({
 const Room = mongoose.model('Room', roomSchema);
 
 module.exports = Room;
-
-module.exports = {
-	    User: User,
-	    Room: Room,
-	};
