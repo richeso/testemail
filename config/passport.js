@@ -58,6 +58,9 @@ passport.use(new basicAuthStrategy(
 		    if (!user) {
 		      return done(null, false, { msg: `Email ${email} not found.` });
 		    }
+		    if (user.activated != 'Y') {
+		       return done(null, false, { msg: 'Account not activated.' });
+		    }
 		    user.comparePassword(password, (err, isMatch) => {
 		      if (err) { return done(err); }
 		      if (isMatch) {
