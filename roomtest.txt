@@ -21,4 +21,4 @@ curl -i -X PUT -H 'Content-Type: application/json' -d '{"table": "rooms", "_id":
 
 
 Delete Room with _id value of TriggerHappy:
-curl -i -X DELETE http://localhost:3000/rooms/delete/TriggerHappy
+curl -i -X DELETE --user richard.cheso@gmail.com:password http://localhost:3000/rooms/delete/TriggerHappy

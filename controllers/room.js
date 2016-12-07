@@ -70,11 +70,40 @@ exports.updateRoom = (req, res, next) => {
     res.json({ username: req.user.username, email: user.email });
 };
 
-exports.deleteRoom = (req, res, next) => {
-	Room.remove({ roomname: req.params.id }, (err) => {
-	    if (err) { return next(err); }
+exports.deleteByName = (req, res, next) => {
+	var roomid = req.params.id;
+	Room.findOne({ roomname: roomid }, (err, room) => {
+	    if (err) { res.send(err)}
 	    else {
-	    	res.send(room);
+	    	Room.remove({ _id: room._id }, (err) => {
+	    	    if (err) { return next(err); }
+	    	    else {
+	    	    	res.send("Deleted: " + room);
+	    	    }
+	    	});
 	    }
+       
 	});
+	
 };
+
+exports.deleteById = (req, res, next) => {
+	  var roomid = req.params.id;
+	  async.waterfall([
+	    function findRoom(done) {
+	    	Room.findOne({ roomname: roomid }, (err, room) => {
+	    	    if (err) { res.send(err) }
+	    	    done(err, room); 
+	    	});
+	    },
+	    function deleteIt(user, done) {
+	    	Room.remove({ _id: room._id }, (err) => {
+	    	    if (err) { return next(err); }
+	    	});
+	    }
+	  ], (err) => {
+	    if (err) { return next(err); }
+	    res.send("Deleted:"+room);
+	  });
+};
+

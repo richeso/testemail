@@ -158,7 +158,7 @@ app.get('/rooms',  passport.authenticate('basic', { session: false }), roomContr
 app.get('/rooms/id/:id',  passport.authenticate('basic', { session: false }), roomController.findById);
 app.post('/rooms/add',  passport.authenticate('basic', { session: false }), roomController.addRoom);
 app.put('/rooms/update/:id',  passport.authenticate('basic', { session: false }), roomController.updateRoom);
-app.delete('/rooms/delete/:id',  passport.authenticate('basic', { session: false }), roomController.deleteRoom);
+app.delete('/rooms/delete/:id',  passport.authenticate('basic', { session: false }), roomController.deleteById);
 
 /**
  * API examples routes.
