@@ -96,7 +96,7 @@ exports.deleteById = (req, res, next) => {
 	    	    done(err, room); 
 	    	});
 	    },
-	    function deleteIt(user, done) {
+	    function deleteIt(room, done) {
 	    	Room.remove({ _id: room._id }, (err) => {
 	    	    if (err) { return next(err); }
 	    	});
