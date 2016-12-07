@@ -34,6 +34,7 @@ const homeController = require('./controllers/home');
 const userController = require('./controllers/user');
 const apiController = require('./controllers/api');
 const contactController = require('./controllers/contact');
+const roomController = require('.//controllers/room');
 
 /**
  * API keys and Passport configuration.
@@ -138,6 +139,27 @@ app.post('/account/password', passportConfig.isAuthenticated, userController.pos
 app.post('/account/delete', passportConfig.isAuthenticated, userController.postDeleteAccount);
 app.get('/account/unlink/:provider', passportConfig.isAuthenticated, userController.getOauthUnlink);
 
+// Rooms api
+
+app.get('/fruit/:fruitName/:fruitColor',  passport.authenticate('basic', { session: false }),
+	function(req, res) {
+    var data = {
+        "fruit": {
+            "name": req.params.fruitName,
+            "color": req.params.fruitColor
+        }
+    }; 
+
+    res.send(data);
+});
+
+app.get('/testauth',  passport.authenticate('basic', { session: false }), roomController.testBasicAuth);
+app.get('/rooms',  passport.authenticate('basic', { session: false }), roomController.findAll);
+app.get('/rooms/id/:id',  passport.authenticate('basic', { session: false }), roomController.findById);
+app.post('/rooms/add',  passport.authenticate('basic', { session: false }), roomController.addRoom);
+app.put('/rooms/update/:id',  passport.authenticate('basic', { session: false }), roomController.updateRoom);
+app.delete('/rooms/delete/:id',  passport.authenticate('basic', { session: false }), roomController.deleteRoom);
+
 /**
  * API examples routes.
  */
@@ -170,6 +192,7 @@ app.post('/api/upload', upload.single('myFile'), apiController.postFileUpload);
 app.get('/api/pinterest', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.getPinterest);
 app.post('/api/pinterest', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.postPinterest);
 app.get('/api/google-maps', apiController.getGoogleMaps);
+
 
 /**
  * OAuth authentication routes. (Sign in)

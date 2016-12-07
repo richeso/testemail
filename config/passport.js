@@ -52,7 +52,7 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, (email, password, don
 // a user object, which will be set at `req.user` in route handlers after
 // authentication.
 passport.use(new basicAuthStrategy(
-  function(email, password, cb) {
+  function(email, password, done) {
 	  User.findOne({ email: email.toLowerCase() }, (err, user) => {
 		    if (err) { return done(err); }
 		    if (!user) {
