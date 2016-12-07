@@ -3,6 +3,7 @@ const passport = require('passport');
 const request = require('request');
 const InstagramStrategy = require('passport-instagram').Strategy;
 const LocalStrategy = require('passport-local').Strategy;
+const basicAuthStrategy = require('passport-http').BasicStrategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
 const TwitterStrategy = require('passport-twitter').Strategy;
 const GitHubStrategy = require('passport-github').Strategy;
@@ -43,6 +44,29 @@ passport.use(new LocalStrategy({ usernameField: 'email' }, (email, password, don
   });
 }));
 
+// Configure the Basic strategy for use by Passport.
+//
+// The Basic strategy requires a `verify` function which receives the
+// credentials (`username` and `password`) contained in the request.  The
+// function must verify that the password is correct and then invoke `cb` with
+// a user object, which will be set at `req.user` in route handlers after
+// authentication.
+passport.use(new basicAuthStrategy(
+  function(email, password, cb) {
+	  User.findOne({ email: email.toLowerCase() }, (err, user) => {
+		    if (err) { return done(err); }
+		    if (!user) {
+		      return done(null, false, { msg: `Email ${email} not found.` });
+		    }
+		    user.comparePassword(password, (err, isMatch) => {
+		      if (err) { return done(err); }
+		      if (isMatch) {
+		        return done(null, user);
+		      }
+		      return done(null, false, { msg: 'Invalid email or password.' });
+		    });
+		  });
+  }));
 /**
  * OAuth Strategy Overview
  *
