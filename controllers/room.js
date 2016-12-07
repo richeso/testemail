@@ -28,16 +28,42 @@ exports.testBasicAuth = (req, res, next) => {
 	});
 };
 exports.findAll = (req, res, next) => {
-    res.json({ username: req.user.username, email: user.email });
+	Room.find({}, function(err, docs) {
+	    if (!err){ 
+	        console.log(docs);
+	        res.send(docs);
+	    } else {
+	    	res.send(err);
+	    }
+	});
+    
 };
 
 exports.findById = (req, res, next) => {
-    res.json({ username: req.user.username, email: user.email });
+	var roomid = req.params.id;
+	Room.findOne({ roomname: roomid }, (err, room) => {
+	    if (err) { res.send(err)};
+        res.send(room);
+	});
+   
 };
 
 exports.addRoom = (req, res, next) => {
-    res.json({ username: req.user.username, email: user.email });
-   
+	var data = req.body;
+    var datastr = JSON.stringify(data);
+    console.log('Adding Room: ' + datastr);
+    const room = new Room({
+        roomname: data.roomname,
+        secret:  data.secret,
+        defaultMap: data.defaultMap,
+        players:  data.players,
+    });
+
+    room.roomExpires = Date.now() + (6*60*60*1000); // 6 hours
+    room.save((err) => {
+	      if (err) { return next(err);  }
+	      else { res.send(data);}
+	} );
 };
 
 exports.updateRoom = (req, res, next) => {
@@ -45,5 +71,10 @@ exports.updateRoom = (req, res, next) => {
 };
 
 exports.deleteRoom = (req, res, next) => {
-    res.json({ username: req.user.username, email: req.user.emails[0].value });
+	Room.remove({ roomname: req.params.id }, (err) => {
+	    if (err) { return next(err); }
+	    else {
+	    	res.send(room);
+	    }
+	});
 };

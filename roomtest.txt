@@ -1,0 +1,24 @@
+f you want to test your API before using it in a client application, you can invoke your REST services straight from a browser address bar. 
+For example, you could try:
+
+http://localhost:3000/rooms
+You will only be able to test your GET services that way. A more versatile solution to test RESTful services is to use cURL, 
+a command line utility for transferring data with URL syntax.
+
+For example, using cURL, you can test the Wine Cellar API with the following commands:
+
+Get all rooms:
+curl -i -X GET --user richard.cheso@gmail.com:password http://localhost:3000/rooms 
+
+Get pokemon with _id value of pikachu (use a value that exists in your database):
+curl -i -X GET --user richard.cheso@gmail.com:password http://localhost:3000/rooms/id/BlueRoom 
+
+Add a new Room: TriggerHappy
+curl -i -X POST -H 'Content-Type: application/json' -d '{"roomname": "TriggerHappy", "secret": "126789", "defaultMap": "CityScape", "players": [{"playername": "Julie", "publicip": "1.2.3.4", "privateip": "4.5.6.7"}, {"playername": "Andy", "publicip": "43.24.85.42", "privateip": "91.25.63.74"}] }' --user richard.cheso@gmail.com:password http://localhost:3000/rooms/add
+
+Modify Room  with _id value of HellCity:
+curl -i -X PUT -H 'Content-Type: application/json' -d '{"table": "rooms", "_id": "HellCity", "name": "HellCity", "players": ["Don", "Patrick", "Julie"], "host": "Don", "publicip": ["1.2.3", "2.3.4" , "5.6.7"], "privateip": ["3.5.6", "4.7.8", "9.8.1"], "map": "FireStorm"}'  http://localhost:3000/rooms/update/Avengers
+
+
+Delete Room with _id value of TriggerHappy:
+curl -i -X DELETE http://localhost:3000/rooms/delete/TriggerHappy

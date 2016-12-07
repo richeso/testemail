@@ -6,6 +6,8 @@ const roomSchema = new mongoose.Schema({
   roomname: { type: String, unique: true },
   secret: String,
   roomExpires: Date,
+  lastUpdated: Date,
+  defaultMap: String,
   players: Array,
 
   profile: {
