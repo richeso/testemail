@@ -67,7 +67,51 @@ exports.addRoom = (req, res, next) => {
 };
 
 exports.updateRoom = (req, res, next) => {
-    res.json({ username: req.user.username, email: user.email });
+      var roomid = req.params.id;
+     
+	  async.waterfall([
+	    function findRoom(done) {
+	    	Room.findOne({ roomname: roomid }, (err, room) => {
+	    	    if (err) { res.send(err) }
+	    	    done(err, room); 
+	    	});
+	    },
+	    function updateit(room, done) {
+		    if (room) {
+		         var data = req.body;
+                 var datastr = JSON.stringify(data);
+		        if (data.roomname) room.roomname=data.roomname;
+			    if (data.secret) room.secret=data.secret;
+			    if (data.defaultMap) room.defaultMap=data.defaultMap;
+			    if (data.players) room.players=data.players;
+		    	room.save((err) => {
+		      		if (err) { return next(err);  }
+		      		else { res.send("updated Room: "  + room);}
+				});
+		    	
+		    } else {
+		        // New Room - add since it does not exist
+		    	var data = req.body;
+			    var datastr = JSON.stringify(data);
+			    console.log('Adding Room: ' + datastr);
+			    const room = new Room({
+			        roomname: data.roomname,
+			        secret:  data.secret,
+			        defaultMap: data.defaultMap,
+			        players:  data.players,
+			    });
+			
+			    room.roomExpires = Date.now() + (6*60*60*1000); // 6 hours
+			    room.save((err) => {
+				      if (err) { return next(err);  }
+				      else { res.send(data);}
+				} );
+		    }
+	    }
+	  ], (err) => {
+	    if (err) { return next(err); }
+	    res.send("Deleted:"+room);
+	  });
 };
 
 exports.deleteByName = (req, res, next) => {
@@ -75,12 +119,16 @@ exports.deleteByName = (req, res, next) => {
 	Room.findOne({ roomname: roomid }, (err, room) => {
 	    if (err) { res.send(err)}
 	    else {
+	        if (room) {
 	    	Room.remove({ _id: room._id }, (err) => {
-	    	    if (err) { return next(err); }
-	    	    else {
-	    	    	res.send("Deleted: " + room);
-	    	    }
-	    	});
+		    	    if (err) { return next(err); }
+		    	    else {
+		    	    	res.send("Deleted: " + room);
+		    	    }
+		    	});
+		    } else {
+		    	res.send("Room not found: " +roomid);
+		    }
 	    }
        
 	});
@@ -97,9 +145,17 @@ exports.deleteById = (req, res, next) => {
 	    	});
 	    },
 	    function deleteIt(room, done) {
-	    	Room.remove({ _id: room._id }, (err) => {
-	    	    if (err) { return next(err); }
-	    	});
+		    if (room) {
+		    	Room.remove({ _id: room._id }, (err) => {
+		    	    if (err) { return next(err); }
+		    	    else {
+		    	       res.send("Deleted:"+room);
+		    	       }
+		    	});
+		    	
+		    } else {
+		    	res.send("Room not found: "+roomid);
+		    }
 	    }
 	  ], (err) => {
 	    if (err) { return next(err); }
