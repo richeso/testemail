@@ -26,7 +26,8 @@ curl -i -X DELETE --user richard.cheso@gmail.com:password http://localhost:3000/
 
 
 Add Player :
-curl -i -X POST -H 'Content-Type: application/json' -d '{"playername": "Chris", "publicip": "1.2.3.4", "privateip": "4.5.6.7"}' --user richard.cheso@gmail.com:password http://localhost:3000/player/add/TriggerHappy
+curl -i -X POST -H 'Content-Type: application/json' -d '{"playername": "Derek", "publicip": "42.22.3.4", "privateip": "41.53.65.76"}' --user richard.cheso@gmail.com:password http://localhost:3000/player/add/TriggerHappy
+curl -i -X POST -H 'Content-Type: application/json' -d '{"playername": "Chris", "publicip": "412.222.3.4", "privateip": "41.533.645.756"}' --user richard.cheso@gmail.com:password http://localhost:3000/player/add/TriggerHappy
 
 
 Delete Player :

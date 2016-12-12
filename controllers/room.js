@@ -176,10 +176,18 @@ exports.addPlayer = (req, res, next) => {
 	    function updateit(room, done) {
 		    if (room) {
 		        var playerdata = req.body;
+		        var playername = playerdata.playername;
                 var datastr = JSON.stringify(playerdata);
                 //console.log("Input data: "+datastr);
                 var players = room.players;
-                room.players.push(playerdata);
+                for(var i in players) {    
+        		    var tempname=players[i].playername;
+        		    if (tempname == playername) {
+        		    	room.players.splice(i, 1);
+        		    	break;
+        		    }
+        	    }
+                players.push(playerdata);
 		    	room.save((err) => {
 		      		if (err) { return next(err);  }
 		      		else { res.send("updated Room: "  + room);}
@@ -213,7 +221,7 @@ exports.deletePlayer = (req, res, next) => {
                 for(var i in players) {    
         		    var tempname=players[i].playername;
         		    if (tempname == playername) {
-        		    	room.players.splice(i, 1);
+        		    	players.splice(i, 1);
         		    	break;
         		    }
         		    
