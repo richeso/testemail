@@ -85,7 +85,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 app.use((req, res, next) => {
-  if (req.path === '/api/upload' || req.path.indexOf('/rooms') != -1) {
+  if (req.path === '/api/upload' || req.path.indexOf('/rooms') || req.path.indexOf('/player') != -1) {
     next();
   } else {
     lusca.csrf()(req, res, next);
@@ -158,7 +158,10 @@ app.get('/rooms',  passport.authenticate('basic', { session: false }), roomContr
 app.get('/rooms/id/:id',  passport.authenticate('basic', { session: false }), roomController.findById);
 app.post('/rooms/add',  passport.authenticate('basic', { session: false }), roomController.addRoom);
 app.put('/rooms/update/:id',  passport.authenticate('basic', { session: false }), roomController.updateRoom);
-app.delete('/rooms/delete/:id',  passport.authenticate('basic', { session: false }), roomController.deleteById);
+app.delete('/rooms/delete/:id',  passport.authenticate('basic', { session: false }), roomController.deleteByName);
+
+app.post('/player/add/:id',  passport.authenticate('basic', { session: false }), roomController.addPlayer);
+app.delete('/player/delete/:id/:player',  passport.authenticate('basic', { session: false }), roomController.deletePlayer);
 
 /**
  * API examples routes.

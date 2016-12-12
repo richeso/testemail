@@ -14,7 +14,7 @@ Get pokemon with _id value of pikachu (use a value that exists in your database)
 curl -i -X GET --user richard.cheso@gmail.com:password http://localhost:3000/rooms/id/BlueRoom 
 
 Add a new Room: TriggerHappy
-curl -i -X POST -H 'Content-Type: application/json' -d '{"roomname": "TriggerHappy", "secret": "126789", "defaultMap": "CityScape", "players": [{"playername": "Julie", "publicip": "1.2.3.4", "privateip": "4.5.6.7"}, {"playername": "Andy", "publicip": "43.24.85.42", "privateip": "91.25.63.74"}] }' --user richard.cheso@gmail.com:password http://localhost:3000/rooms/add
+curl -i -X POST -H 'Content-Type: application/json' -d '{"roomname": "BigComfyCouch", "secret": "126789", "defaultMap": "CityScape", "players": [{"playername": "Julie", "publicip": "1.2.3.4", "privateip": "4.5.6.7"}, {"playername": "Andy", "publicip": "43.24.85.42", "privateip": "91.25.63.74"}] }' --user richard.cheso@gmail.com:password http://localhost:3000/rooms/add
 
 Modify Room  with _id value of HellCity:
 curl -i -X PUT -H 'Content-Type: application/json' -d '{"roomname": "TriggerHappy", "secret": "126789", "defaultMap": "CityScape", "players": [{"playername": "Julie", "publicip": "1.2.3.4", "privateip": "4.5.6.7"}, {"playername": "Andy", "publicip": "43.24.85.42", "privateip": "91.25.63.74"}] }' --user richard.cheso@gmail.com:password http://localhost:3000/rooms/update/TriggerHappy
@@ -23,3 +23,12 @@ curl -i -X PUT -H 'Content-Type: application/json' -d '{"roomname": "TriggerSad"
 
 Delete Room with _id value of TriggerHappy:
 curl -i -X DELETE --user richard.cheso@gmail.com:password http://localhost:3000/rooms/delete/TriggerHappy
+
+
+Add Player :
+curl -i -X POST -H 'Content-Type: application/json' -d '{"playername": "Chris", "publicip": "1.2.3.4", "privateip": "4.5.6.7"}' --user richard.cheso@gmail.com:password http://localhost:3000/player/add/TriggerHappy
+
+
+Delete Player :
+curl -i -X DELETE --user richard.cheso@gmail.com:password http://localhost:3000/player/delete/TriggerHappy/Chris
+

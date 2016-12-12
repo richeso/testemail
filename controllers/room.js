@@ -163,3 +163,73 @@ exports.deleteById = (req, res, next) => {
 	  });
 };
 
+exports.addPlayer = (req, res, next) => {
+      var roomid = req.params.id;
+     
+	  async.waterfall([
+	    function findRoom(done) {
+	    	Room.findOne({ roomname: roomid }, (err, room) => {
+	    	    if (err) { res.send(err) }
+	    	    done(err, room); 
+	    	});
+	    },
+	    function updateit(room, done) {
+		    if (room) {
+		        var playerdata = req.body;
+                var datastr = JSON.stringify(playerdata);
+                //console.log("Input data: "+datastr);
+                var players = room.players;
+                room.players.push(playerdata);
+		    	room.save((err) => {
+		      		if (err) { return next(err);  }
+		      		else { res.send("updated Room: "  + room);}
+				});
+		    	
+		    } else {
+		        // Room was not found - cannot add Player
+		    	res.send("Room not found: "+roomid);
+		    }
+	    }
+	  ], (err) => {
+	    if (err) { return next(err); }
+	    res.send("Added Player:"+room);
+	  });
+};
+
+exports.deletePlayer = (req, res, next) => {
+      var roomid = req.params.id;
+      var playername = req.params.player;
+      console.log ("Deleting Player: "+roomid+ ":"+playername);
+	  async.waterfall([
+	    function findRoom(done) {
+	    	Room.findOne({ roomname: roomid }, (err, room) => {
+	    	    if (err) { res.send(err) }
+	    	    done(err, room); 
+	    	});
+	    },
+	    function updateit(room, done) {
+		    if (room) {
+		    	var players = room.players;
+                for(var i in players) {    
+        		    var tempname=players[i].playername;
+        		    if (tempname == playername) {
+        		    	room.players.splice(i, 1);
+        		    	break;
+        		    }
+        		    
+        	    }
+		    	room.save((err) => {
+		      		if (err) { return next(err);  }
+		      		else { res.send("updated Room: "  + room);}
+				});
+		    	
+		    } else {
+		    	 // Room was not found - cannot Delete Player
+		    	res.send("Room was not found: "+roomid);
+		    }
+	    }
+	  ], (err) => {
+	    if (err) { return next(err); }
+	    res.send("Deleted Player:"+room);
+	  });
+};
