@@ -19,8 +19,18 @@ const expressValidator = require('express-validator');
 const expressStatusMonitor = require('express-status-monitor');
 const sass = require('node-sass-middleware');
 const multer = require('multer');
-
 const upload = multer({ dest: path.join(__dirname, 'uploads') });
+
+const cookieParser = require('cookie-parser');
+const i18n = require('i18n');
+i18n.configure({
+	locales:['en', 'fr'],
+	directory: __dirname + '/locales',
+	defaultLocale: 'en',
+	extension: '.json',
+	// define a custom cookie name to parse locale settings from 
+	cookie: 'i18n'
+});
 
 /**
  * Load environment variables from .env file, where API keys and passwords are configured.
@@ -45,6 +55,7 @@ const passportConfig = require('./config/passport');
  * Create Express server.
  */
 const app = express();
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
 
 /**
  * Connect to MongoDB.
@@ -76,11 +87,20 @@ app.use(session({
   resave: true,
   saveUninitialized: true,
   secret: process.env.SESSION_SECRET,
+  cookie : {
+	    maxAge: 6*60*60*1000 // 6 Hours - 6*60*60*1000
+	  },
   store: new MongoStore({
     url: process.env.MONGODB_URI || process.env.MONGOLAB_URI,
-    autoReconnect: true
+    autoReconnect: true,
+    autoRemove: 'interval',
+    autoRemoveInterval: 10*60*1000 // 10 Minutes 
   })
 }));
+//init i18n after cookie-parser
+app.use(cookieParser(process.env.SESSION_SECRET));
+app.use(i18n.init);
+
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
@@ -111,7 +131,7 @@ app.use((req, res, next) => {
   }
   next();
 });
-app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
+//app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
 
 /**
  * Primary app routes.
@@ -244,6 +264,12 @@ app.get('/auth/pinterest', passport.authorize('pinterest', { scope: 'read_public
 app.get('/auth/pinterest/callback', passport.authorize('pinterest', { failureRedirect: '/login' }), (req, res) => {
   res.redirect('/api/pinterest');
 });
+
+app.get('/lang/:langcd', function (req, res) {
+    res.cookie('i18n', req.params.langcd);
+    res.redirect('/')
+});
+
 
 /**
  * Error Handler.

@@ -1,0 +1,21 @@
+{
+    "Welcome": "Hi, welcome to our site",
+    "Language": "Please choose your language",
+    "Contact Information" : "1 Elf rd, Unicorn Village, Wonderland, Earth",
+    "Contact Form"	 : "Contact Form",
+    "Name" : "Name",
+    "Email" : "Email",
+    "Body" : "Body",
+    "Send" : "Send",
+    "Contact" : "CONTACT",
+    "Project Name" : "BOMSY",
+    "Login" : "LOGIN",
+    "Create Account" : "CREATE ACCOUNT",
+    "Home" : "HOME",
+    "Status" : "STATUS",
+    "Api Examples" : "API EXAMPLES",
+    "English" : "ENGLISH",
+    "French" : "FRENCH",
+    "Logout" : "LOGOUT",
+    "My Account" : "MY ACCOUNT"
+}
