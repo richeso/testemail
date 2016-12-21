@@ -7,12 +7,9 @@ const User = require('../models/User');
 var emailActivationRequest = function(req,res,token,user) {
   const mailOptions = {
           to: user.email,
-          from: 'hackathon@starter.com',
-          subject: 'Activate your account on Hackathon Starter',
-          text: `You are receiving this email because you have registered for a new account.\n\n
-            Please click on the following link, or paste this into your browser to complete the account activation process:\n\n
-            http://${req.headers.host}/activate/${token}\n\n
-            If you did not request this, please ignore this email and your account will not be activated.\n`
+          from: res.__("Activation-email-from"),
+          subject: res.__("Activation-email-subject"),
+          text: res.__("Activation-email-text")+`\nhttp://${req.headers.host}/activate/${token}\n\n`
         };
        
         var helper = require('sendgrid').mail;
@@ -33,7 +30,7 @@ var emailActivationRequest = function(req,res,token,user) {
           console.log(response.statusCode);
           console.log(response.body);
           console.log(response.headers);
-          req.flash('success', { msg: 'Success ! Please Check your email and click on the link to Activate your Account.' });
+          req.flash('success', { msg: res.__("Activation-email-sent") });
           res.redirect('/actmail');
         });
 }
@@ -56,8 +53,8 @@ exports.getLogin = (req, res) => {
  * Sign in using email and password.
  */
 exports.postLogin = (req, res, next) => {
-  req.assert('email', 'Email is not valid').isEmail();
-  req.assert('password', 'Password cannot be blank').notEmpty();
+  req.assert('email',res.__('Email is not valid')).isEmail();
+  req.assert('password', res.__('Password cannot be blank')).notEmpty();
   req.sanitize('email').normalizeEmail({ remove_dots: false });
 
   const errors = req.validationErrors();
@@ -506,7 +503,7 @@ exports.getActmail = (req, res) => {
     return res.redirect('/');
   }
   res.render('account/actmail', {
-    title: 'Re-send Activation Email'
+    title: res.__("Resend Activation Email")
   });
 };
 
